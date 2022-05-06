@@ -9,7 +9,7 @@ export default function Navbar(){
                 </Box>
                 <Spacer />
                 <Box>
-                    <Link href={'https://github.com/TiveCS/shorten'} target={'_blank'}>
+                    <Link href={'https://github.com/TiveCS/short-en'} target={'_blank'}>
                         <Image src={'/icons/github.svg'} alt={'Repository'} />
                     </Link>
                 </Box>

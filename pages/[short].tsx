@@ -16,7 +16,7 @@ export default function ShortenPage(props: ShortenProps){
 
     useEffect(() => {
         window.location.assign(url);
-    }, []);
+    });
 
     return (
         <Center minH={'100vh'}>
@@ -29,6 +29,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const { short } = context.query;
     const env = environment();
+
+    console.log(env);
 
     const fetcher = await fetch(`${env}/api/shorten/get/${short}`);
     const data = await fetcher.json();

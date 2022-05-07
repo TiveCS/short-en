@@ -9,22 +9,42 @@ import {
     ModalContent,
     ModalHeader,
     ModalOverlay,
-    useDisclosure
+    useDisclosure,
+    useToast
 } from "@chakra-ui/react";
 import ActionButton from "../ActionButton/ActionButton";
 import {useForm} from "react-hook-form";
 import environment from "../../util/environment";
+import {useEffect, useState} from "react";
 
 export default function ActionModal() {
 
-    const {isOpen, onOpen, onClose} = useDisclosure();
+    const [isLoading, setIsLoading] = useState<boolean>();
+    const [isSuccess, setIsSuccess] = useState<boolean>();
 
+    const {isOpen, onOpen, onClose} = useDisclosure();
     const {formState: {errors}, register, handleSubmit} = useForm();
+
+    const toast = useToast();
+
+    const showToast = (title: string, status: "info" | "success" | "error") => {
+        toast({
+            isClosable: true,
+            title,
+            status
+        });
+    }
 
     const onSubmit = async (data: any) => {
         const env = environment();
         const {url, short} = data;
 
+        if (!url || !short){
+            showToast("URL or Short link is not set!", "error");
+            return;
+        }
+
+        setIsLoading(true);
         const res = await fetch(`${env}/api/shorten/post/create`, {
             method: 'POST',
             headers: {
@@ -37,7 +57,25 @@ export default function ActionModal() {
         });
 
         const result = await res.json();
+        const status = res.status === 200;
+        setIsLoading(false);
+        setIsSuccess(status);
     };
+
+    useEffect(() => {
+        if (isLoading != undefined) {
+            if (isLoading) {
+                showToast("Sending your request...", "info");
+            } else {
+                if (isSuccess) {
+                    showToast("Successfully create short link", "success");
+                } else {
+                    showToast("Failed sending your request...", "error");
+                }
+                setIsSuccess(undefined);
+            }
+        }
+    }, [isLoading]);
 
     return (
         <>
@@ -60,7 +98,7 @@ export default function ActionModal() {
                             </FormControl>
 
                             <Flex mb={4} justifyContent={'flex-end'}>
-                                <ActionButton text={'Submit'} type={'submit'}/>
+                                <ActionButton isLoading={isLoading} text={'Submit'} type={'submit'}/>
                             </Flex>
                         </form>
                     </ModalBody>

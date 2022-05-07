@@ -11,9 +11,9 @@ export default async function handler(
     const found = await db.collection("shorten-url").findOne({short: short});
 
     if (found){
-        res.status(200).send(found);
+        await res.status(200).send(found);
     }else{
-        res.status(404).json({
+        await res.status(404).json({
             message: 'Shorten url not found!'
         });
     }

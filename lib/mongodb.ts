@@ -20,13 +20,14 @@ export async function connectToDatabase() {
         return {client: cachedClient, db: cachedDb}
     }
 
-    const client = await MongoClient.connect(uri);
+    const client = await MongoClient.connect(uri, {
+        maxPoolSize: 100,
+        maxIdleTimeMS: 3000
+    });
     const db = await client.db(dbName);
 
     cachedClient = client;
     cachedDb = db;
-
-    console.log('Connected to MongoDB');
 
     return {client, db}
 }

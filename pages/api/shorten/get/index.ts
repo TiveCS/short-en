@@ -10,5 +10,5 @@ export default async function handler(
 
     const data = await db.collection("shorten-url").find({}).toArray();
 
-    res.status(200).json(data);
+    await res.status(200).json(data);
 }

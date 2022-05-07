@@ -5,11 +5,17 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
 ) {
-    const {short, url} = req.query;
+    const {short, url} = req.body;
+
+    if (!short || !url){
+        res.status(400).json({
+            message: 'Shortener or URL is not set!'
+        })
+    }
 
     const shortenUrlObject = {
-        "short": short,
-        "url": url
+        short: short,
+        url: url
     };
 
     const {db} = await connectToDatabase();

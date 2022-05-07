@@ -1,91 +1,72 @@
-import {useDisclosure} from "@chakra-ui/hooks";
-import {Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalOverlay} from "@chakra-ui/modal";
+import {
+    Flex,
+    FormControl,
+    FormLabel,
+    Input,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalHeader,
+    ModalOverlay,
+    useDisclosure
+} from "@chakra-ui/react";
 import ActionButton from "../ActionButton/ActionButton";
-import {Box, FormLabel, Input, InputGroup, InputLeftAddon, Stack, useToast} from "@chakra-ui/react";
-import {ChangeEvent, useState} from "react";
-
-interface ToastProps {
-    title: string;
-    status: 'info' | 'success' | 'warning' | 'error' | undefined;
-}
+import {useForm} from "react-hook-form";
+import environment from "../../util/environment";
 
 export default function ActionModal() {
 
     const {isOpen, onOpen, onClose} = useDisclosure();
 
-    const [userUrl, setUserUrl] = useState<string>("");
-    const [userShortener, setUserShortener] = useState<string>("");
-    const [process, setProcess] = useState(false);
+    const {formState: {errors}, register, handleSubmit} = useForm();
 
-    const toast = useToast();
-    const toastId = 'shorten-form';
+    const onSubmit = async (data: any) => {
+        const env = environment();
+        const {url, short} = data;
 
-    const showToast = ({title, status}: ToastProps) => {
-        if (!toast.isActive(toastId)) {
-            toast({
-                id: toastId,
-                title: title,
-                isClosable: true,
-                position: 'bottom',
-                status: status
-            });
-        }
-    }
+        const res = await fetch(`${env}/api/shorten/post/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                short: short,
+                url: url
+            })
+        });
 
-    const handleSubmit = () => {
-        if (!userShortener || !userUrl){
-            showToast({title: `Link and Shortener is required!`, status: 'error'});
-        }else{
-            setProcess(true);
-
-            const bodyJson = JSON.stringify({
-                "url": userUrl,
-                "short": userShortener
-            });
-        }
-    }
-
-    const handleUserUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
-        event.preventDefault();
-        setUserUrl(event.target.value);
-    }
-
-    const handleUserShortenerChange = (event: ChangeEvent<HTMLInputElement>) => {
-        event.preventDefault();
-        setUserShortener(event.target.value);
-    }
+        const result = await res.json();
+        console.log(result);
+    };
 
     return (
         <>
             <ActionButton text={'Shorten Link'} type={'button'} onClick={onOpen}/>
-
-            <Modal isOpen={isOpen} onClose={onClose} size={'lg'}>
-                <ModalOverlay />
-
+            <Modal size={'xl'} isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay/>
                 <ModalContent>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
+                    <ModalHeader/>
+                    <ModalBody>
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <FormControl>
+                                <FormLabel htmlFor={'url'}>URL</FormLabel>
+                                <Input type={'url'} placeholder={'Your long URL'} {...register('url')}/>
+                            </FormControl>
 
-                    <ModalBody pt={16}>
-                        <Stack spacing={4}>
-                            <Box>
-                                <FormLabel>Your Link</FormLabel>
-                                <Input onChange={handleUserUrlChange} value={userUrl} placeholder={'Your long url'} />
-                            </Box>
-                            <Box>
-                                <FormLabel>Shorten Link</FormLabel>
-                                <InputGroup>
-                                    <InputLeftAddon>shorten.com/</InputLeftAddon>
-                                    <Input onChange={handleUserShortenerChange} value={userShortener} placeholder={'Link shortcut'} type={'text'} />
-                                </InputGroup>
-                            </Box>
-                        </Stack>
+                            <FormControl mt={4} mb={8}>
+                                <FormLabel htmlFor={'short'}>Short Link</FormLabel>
+                                <Input type={'text'} placeholder={'Your shortener link'} {...register('short')}/>
+                            </FormControl>
+
+                            <Flex mb={4} justifyContent={'flex-end'}>
+                                <ActionButton text={'Submit'} type={'submit'}/>
+                            </Flex>
+                        </form>
                     </ModalBody>
-
-                    <ModalFooter>
-                        <ActionButton text={'Submit'} type={'submit'} isLoading={process} onClick={() => handleSubmit()} />
-                    </ModalFooter>
                 </ModalContent>
             </Modal>
         </>
-    )
+    );
 }
